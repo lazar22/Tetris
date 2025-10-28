@@ -19,8 +19,17 @@ int main()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    SDL_Window* window = SDL_CreateWindow(platform::window::title.c_str(), 0, 0,
+    SDL_Rect window_rect;
+    SDL_GetDisplayBounds(0, &window_rect);
+
+    const unsigned pos_win_x = window_rect.x + (window_rect.w - platform::window::width) / 2;
+    const unsigned pos_win_y = window_rect.y + (window_rect.h - platform::window::height) / 2;
+
+    SDL_Window* window = SDL_CreateWindow(platform::window::title.c_str(),
+                                          static_cast<int>(pos_win_x), static_cast<int>(pos_win_y),
                                           platform::window::width, platform::window::height, SDL_WINDOW_SHOWN);
+    SDL_SetWindowBordered(window, SDL_TRUE);
+
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     bool is_running = true;
@@ -57,6 +66,8 @@ int main()
                     READ_KEY(platform::input::LEFT, SDLK_LEFT);
                     READ_KEY(platform::input::RIGHT, SDLK_RIGHT);
 
+                    READ_KEY(platform::input::QUIT, SDLK_ESCAPE);
+
                     default: break ;
                     }
                 }
@@ -65,6 +76,12 @@ int main()
             default:
                 break;
             }
+        }
+
+        if (IS_PRESSED(platform::input::QUIT))
+        {
+            is_running = false;
+            break;
         }
 
         const unsigned long long now_time = SDL_GetPerformanceCounter();

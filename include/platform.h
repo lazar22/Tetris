@@ -11,30 +11,38 @@
 
 #include <string>
 
-namespace platform {
-    namespace window {
+namespace platform
+{
+    namespace window
+    {
         const std::string title = "Tetris";
         constexpr unsigned width{710};
         constexpr unsigned height{960};
     }
 
-    namespace input {
-        typedef struct BUTTON_STATE {
+    namespace input
+    {
+        typedef struct BUTTON_STATE
+        {
             bool is_down{false};
             bool changed{false};
         } btn_state_t;
 
 
-        enum BUTTONS {
+        enum BUTTONS
+        {
             UP,
             DOWN,
             LEFT,
             RIGHT,
 
+            QUIT,
+
             BTN_COUNT,
         };
 
-        typedef struct INPUT {
+        typedef struct INPUT
+        {
             BUTTON_STATE buttons[BTN_COUNT];
         } input_t;
     }
