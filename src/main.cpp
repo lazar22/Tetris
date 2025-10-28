@@ -11,12 +11,17 @@ static platform::input::input_t input;
 
 static float delta_time = 0.f;
 
-int main() {
+#if WIN32
+int SDL_main(int argc, char** argv)
+#else
+int main()
+#endif
+{
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    SDL_Window *window = SDL_CreateWindow(platform::window::title.c_str(), 0, 0,
+    SDL_Window* window = SDL_CreateWindow(platform::window::title.c_str(), 0, 0,
                                           platform::window::width, platform::window::height, SDL_WINDOW_SHOWN);
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     bool is_running = true;
     SDL_Event event;
@@ -24,34 +29,41 @@ int main() {
     const Game game{renderer};
 
     unsigned long long last_time = SDL_GetPerformanceCounter();
-    while (is_running) {
-        for (int i = 0; i < platform::input::BTN_COUNT; ++i) {
+    while (is_running)
+    {
+        for (int i = 0; i < platform::input::BTN_COUNT; ++i)
+        {
             input.buttons[i].changed = false;
         }
 
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_QUIT)
+            {
                 is_running = false;
             }
 
-            switch (event.type) {
-                case SDL_KEYUP:
-                case SDL_KEYDOWN: {
+            switch (event.type)
+            {
+            case SDL_KEYUP:
+            case SDL_KEYDOWN:
+                {
                     const unsigned int key = event.key.keysym.sym;
                     const bool is_down = (event.type == SDL_KEYDOWN);
 
-                    switch (key) {
-                        READ_KEY(platform::input::DOWN, SDLK_DOWN);
-                        READ_KEY(platform::input::LEFT, SDLK_LEFT);
-                        READ_KEY(platform::input::RIGHT, SDLK_RIGHT);
+                    switch (key)
+                    {
+                    READ_KEY(platform::input::DOWN, SDLK_DOWN);
+                    READ_KEY(platform::input::LEFT, SDLK_LEFT);
+                    READ_KEY(platform::input::RIGHT, SDLK_RIGHT);
 
-                        default: break ;
+                    default: break ;
                     }
                 }
                 break;
 
-                default:
-                    break;
+            default:
+                break;
             }
         }
 
