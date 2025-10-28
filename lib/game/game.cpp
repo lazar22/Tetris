@@ -20,6 +20,8 @@ static board_rectf_t board[row_amount][column_amount] = {};
 static float player_position_y{board_offset};
 static float player_position_x{board_offset};
 
+static block_t player_pattern{block::get_random_block()};
+
 static float current_player_speed{0.f};
 
 static bool game_init{true};
@@ -81,10 +83,11 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
     if (detect_collision())
     {
         SDL_Log("Collision");
+        player_pattern = block::get_random_block();
         player_position_y = 0;
     }
 
-    draw_rect({player_position_x, player_position_y, block_size, block_size}, {232, 110, 88});
+    draw_player(player_position_x, player_position_y, player_pattern, {232, 110, 88});
 
     SDL_RenderPresent(renderer);
 }
@@ -132,4 +135,23 @@ inline void Game::draw_rect(const SDL_FRect& rect, const Color& color) const
 {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderFillRectF(renderer, &rect);
+}
+
+inline void Game::draw_player(const float& pos_x, const float& pos_y,
+                              const block_t& block_pattern, const color_t& player_color) const
+{
+    for (int row = 0; row < PATTERN_ROW; ++row)
+    {
+        for (int col = 0; col < PATTERN_COLUMN; ++col)
+        {
+            if (block_pattern.pattern[col][row] == '1')
+            {
+                const float tile_x = pos_x + static_cast<float>(col) * block_size + static_cast<float>(col) *
+                    board_offset;
+                const float tile_y = pos_y + static_cast<float>(row) * block_size + static_cast<float>(row) *
+                    board_offset;
+                draw_rect({tile_x, tile_y, block_size, block_size}, player_color);
+            }
+        }
+    }
 }

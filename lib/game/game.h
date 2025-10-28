@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 
 #include "platform.h"
+#include "block.h"
 
 #define IS_DOWN(button) input.buttons[button].is_down
 #define IS_PRESSED(button) (input.buttons[button].is_down && input.buttons[button].changed)
@@ -47,6 +48,9 @@ private:
     inline void draw_rect(const SDL_FRect& rect, const Color& color) const;
 
     inline static bool detect_collision(void);
+
+    inline void draw_player(const float& pos_x, const float& pos_y,
+                            const block_t& block_pattern, const color_t& player_color) const;
 };
 
 #endif //GAME_H

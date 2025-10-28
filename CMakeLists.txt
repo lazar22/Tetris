@@ -8,8 +8,12 @@ ELSE ()
     include_directories(${SDL2_INCLUDE_DIR})
 ENDIF ()
 
-add_executable(Tetris src/main.cpp lib/game/game.cpp include/platform.h)
-target_include_directories(Tetris PRIVATE include lib/game)
+add_executable(Tetris src/main.cpp
+        include/platform.h
+        lib/game/game.cpp
+        lib/block/block.cpp)
+
+target_include_directories(Tetris PRIVATE include lib/game lib/block)
 
 IF (WIN32)
     target_link_libraries(Tetris PRIVATE SDL2::SDL2main SDL2::SDL2)
