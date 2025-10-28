@@ -1,0 +1,37 @@
+//
+// Created by roki on 2025-10-28.
+//
+
+#ifndef GAME_H
+#define GAME_H
+
+#include <SDL2/SDL.h>
+
+#include "platform.h"
+
+typedef struct Color {
+    unsigned r{};
+    unsigned g{};
+    unsigned b{};
+    unsigned a{255};
+} color_t;
+
+class Game {
+    SDL_Renderer *renderer{nullptr};
+
+public:
+    explicit Game(SDL_Renderer *_renderer) : renderer{_renderer} {
+    }
+
+    ~Game() = default;
+
+public:
+    void simulate(const platform::input::input_t &input) const;
+
+    void color_bg(const color_t &color) const;
+
+private:
+    inline void draw_rect(const SDL_FRect &rect, const Color &color) const;
+};
+
+#endif //GAME_H

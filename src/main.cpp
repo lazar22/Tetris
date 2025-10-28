@@ -4,12 +4,16 @@
 #include <string>
 #include <SDL2/SDL.h>
 
-static const std::string kWindowTitle = "Tetris";
+#include "platform.h"
+#include "game.h"
+
+static platform::input::input_t input;
 
 int main() {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    SDL_Window *window = SDL_CreateWindow(kWindowTitle.c_str(), 100, 100, 640, 480, SDL_WINDOW_SHOWN);
+    SDL_Window *window = SDL_CreateWindow(platform::window::title.c_str(), 0, 0,
+                                          platform::window::width, platform::window::height, SDL_WINDOW_SHOWN);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     bool is_running = true;
@@ -20,16 +24,32 @@ int main() {
             if (event.type == SDL_QUIT) {
                 is_running = false;
             }
+
+            switch (event.type) {
+                case SDL_KEYUP:
+                case SDL_KEYDOWN: {
+                    const unsigned int key = event.key.keysym.sym;
+                    const bool is_down = (event.type == SDL_KEYDOWN);
+                    switch (key) {
+                        READ_KEY(platform::input::UP, SDLK_UP);
+                        READ_KEY(platform::input::DOWN, SDLK_DOWN);
+                        READ_KEY(platform::input::LEFT, SDLK_LEFT);
+                        READ_KEY(platform::input::RIGHT, SDLK_RIGHT);
+
+                        default: break ;
+                    }
+                }
+                break;
+
+                default:
+                    break;
+            }
         }
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
+        Game game{renderer};
+        game.color_bg(color_t{181, 175, 174});
 
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_Rect rect = {100, 100, 40, 40};
-        SDL_RenderFillRect(renderer, &rect);
-
-        SDL_RenderPresent(renderer);
+        game.simulate(input);
     }
 
     SDL_DestroyWindow(window);
