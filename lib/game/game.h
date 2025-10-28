@@ -21,6 +21,12 @@ typedef struct Color
     unsigned a{255};
 } color_t;
 
+typedef struct BOARD_RECTF
+{
+    SDL_FRect rect;
+    color_t color;
+} board_rectf_t;
+
 class Game
 {
     SDL_Renderer* renderer{nullptr};
@@ -39,6 +45,8 @@ public:
 
 private:
     inline void draw_rect(const SDL_FRect& rect, const Color& color) const;
+
+    inline static bool detect_collision(void);
 };
 
 #endif //GAME_H
