@@ -14,8 +14,8 @@
 namespace platform {
     namespace window {
         const std::string title = "Tetris";
-        constexpr unsigned width{1280};
-        constexpr unsigned height{720};
+        constexpr unsigned width{710};
+        constexpr unsigned height{960};
     }
 
     namespace input {
