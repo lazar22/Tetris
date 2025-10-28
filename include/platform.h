@@ -14,14 +14,14 @@
 namespace platform {
     namespace window {
         const std::string title = "Tetris";
-        constexpr unsigned width{640};
-        constexpr unsigned height{480};
+        constexpr unsigned width{1280};
+        constexpr unsigned height{720};
     }
 
     namespace input {
         typedef struct BUTTON_STATE {
-            bool is_down;
-            bool changed;
+            bool is_down{false};
+            bool changed{false};
         } btn_state_t;
 
 

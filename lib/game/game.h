@@ -26,7 +26,7 @@ public:
     ~Game() = default;
 
 public:
-    void simulate(const platform::input::input_t &input) const;
+    void simulate(const platform::input::input_t &input, const float &delta_time) const;
 
     void color_bg(const color_t &color) const;
 
