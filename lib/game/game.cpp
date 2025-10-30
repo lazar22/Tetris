@@ -15,6 +15,9 @@ static constexpr int column_amount{14};
 
 static constexpr float board_offset{10.0f};
 
+// Color used to represent an empty board cell
+static constexpr platform::player::color_t empty_color{191, 232, 88};
+
 static board_rectf_t board[row_amount][column_amount] = {};
 
 static float player_position_y{board_offset};
@@ -66,7 +69,7 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
                 const float pos_y = static_cast<float>(row) * block_size +
                     (static_cast<float>(row) * board_offset) + board_offset;
 
-                board[row][col] = {{pos_x, pos_y, block_size, block_size}, {191, 232, 88}};
+                board[row][col] = {{pos_x, pos_y, block_size, block_size}, empty_color};
             }
         }
 
@@ -86,7 +89,7 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
         SDL_Log("Collision");
         player_pattern = block::get_random_block();
         player_color = block::get_random_color();
-        player_position_y = 0;
+        player_position_y = board_offset;
     }
 
     draw_player(player_position_x, player_position_y, player_pattern, player_color);
@@ -103,10 +106,11 @@ inline bool Game::detect_collision()
 
     auto is_filled = [](const platform::player::color_t& c) -> bool
     {
-        return (c.r == 0 && c.g == 0 && c.b == 0);
+        return !(c.r == empty_color.r && c.g == empty_color.g && c.b == empty_color.b);
     };
 
     bool will_collide = false;
+    bool collided_with_floor = false;
 
     for (int r = 0; r < platform::player::PATTERN_ROW; ++r)
     {
@@ -128,15 +132,18 @@ inline bool Game::detect_collision()
             if (next_row >= row_amount)
             {
                 will_collide = true;
+                collided_with_floor = true;
                 break;
             }
 
             if (is_filled(board[next_row][tile_col].color))
             {
                 will_collide = true;
+                // keep collided_with_floor = false
                 break;
             }
         }
+
         if (will_collide) break;
     }
 
@@ -144,6 +151,10 @@ inline bool Game::detect_collision()
     {
         return false;
     }
+
+    // Determine the placement base row. If we collided with the bottom edge,
+    // move the piece one row up so its lowest tiles stay within the board.
+    const int placement_base_row = base_row + (collided_with_floor ? -1 : 0);
 
     for (int r = 0; r < platform::player::PATTERN_ROW; ++r)
     {
@@ -155,12 +166,12 @@ inline bool Game::detect_collision()
             }
 
             int tile_col = base_col + c;
-            int tile_row = base_row + r;
+            const int tile_row = placement_base_row + r;
 
             if (tile_col < 0) tile_col = 0;
             if (tile_col >= column_amount) tile_col = column_amount - 1;
-            if (tile_row < 0) continue; // Above the board, skip
-            if (tile_row >= row_amount) continue; // Safety guard
+            if (tile_row < 0) continue;
+            if (tile_row >= row_amount) continue;
 
             board[tile_row][tile_col].color = player_color;
         }
