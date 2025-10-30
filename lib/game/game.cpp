@@ -20,13 +20,14 @@ static board_rectf_t board[row_amount][column_amount] = {};
 static float player_position_y{board_offset};
 static float player_position_x{board_offset};
 
-static block_t player_pattern{block::get_random_block()};
+static platform::player::block_t player_pattern{block::get_random_block()};
+static platform::player::color_t player_color{block::get_random_color()};
 
 static float current_player_speed{0.f};
 
 static bool game_init{true};
 
-void Game::color_bg(const color_t& color) const
+void Game::color_bg(const platform::player::color_t& color) const
 {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderClear(renderer);
@@ -34,7 +35,7 @@ void Game::color_bg(const color_t& color) const
 
 void Game::simulate(const platform::input::input_t& input, const float& delta_time) const
 {
-    color_bg(color_t{181, 175, 174});
+    color_bg(platform::player::color_t{181, 175, 174});
     current_player_speed = player_vertical_speed;
 
     if (IS_DOWN(platform::input::DOWN))
@@ -84,10 +85,11 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
     {
         SDL_Log("Collision");
         player_pattern = block::get_random_block();
+        player_color = block::get_random_color();
         player_position_y = 0;
     }
 
-    draw_player(player_position_x, player_position_y, player_pattern, {232, 110, 88});
+    draw_player(player_position_x, player_position_y, player_pattern, player_color);
 
     SDL_RenderPresent(renderer);
 }
@@ -96,53 +98,90 @@ inline bool Game::detect_collision()
 {
     constexpr float cell = block_size + board_offset;
 
-    int col = static_cast<int>(std::round((player_position_x - board_offset) / cell));
-    const int row = static_cast<int>(std::floor((player_position_y - board_offset) / cell));
+    const int base_col = static_cast<int>(std::round((player_position_x - board_offset) / cell));
+    const int base_row = static_cast<int>(std::floor((player_position_y - board_offset) / cell));
 
-    if (col < 0)
+    auto is_filled = [](const platform::player::color_t& c) -> bool
     {
-        col = 0;
-    }
+        return (c.r == 0 && c.g == 0 && c.b == 0);
+    };
 
-    if (col >= column_amount)
+    bool will_collide = false;
+
+    for (int r = 0; r < platform::player::PATTERN_ROW; ++r)
     {
-        col = column_amount - 1;
-    }
-
-    const int next_row = row + 1;
-
-    if (next_row >= row_amount - 1)
-    {
-        board[row_amount - 2][col].color = {0, 0, 0};
-        return true;
-    }
-
-    const color_t& below = board[next_row][col].color;
-    const bool below_filled = (below.r == 0 && below.g == 0 && below.b == 0);
-
-    if (below_filled)
-    {
-        if (row > 0 && row < row_amount - 2)
+        for (int c = 0; c < platform::player::PATTERN_COLUMN; ++c)
         {
-            board[row][col].color = {0, 0, 0};
-            return true;
+            if (player_pattern.pattern[c][r] != '1')
+            {
+                continue;
+            }
+
+            int tile_col = base_col + c;
+            const int tile_row = base_row + r;
+
+            if (tile_col < 0) tile_col = 0;
+            if (tile_col >= column_amount) tile_col = column_amount - 1;
+
+            const int next_row = tile_row + 1;
+
+            if (next_row >= row_amount)
+            {
+                will_collide = true;
+                break;
+            }
+
+            if (is_filled(board[next_row][tile_col].color))
+            {
+                will_collide = true;
+                break;
+            }
+        }
+        if (will_collide) break;
+    }
+
+    if (!will_collide)
+    {
+        return false;
+    }
+
+    for (int r = 0; r < platform::player::PATTERN_ROW; ++r)
+    {
+        for (int c = 0; c < platform::player::PATTERN_COLUMN; ++c)
+        {
+            if (player_pattern.pattern[c][r] != '1')
+            {
+                continue;
+            }
+
+            int tile_col = base_col + c;
+            int tile_row = base_row + r;
+
+            if (tile_col < 0) tile_col = 0;
+            if (tile_col >= column_amount) tile_col = column_amount - 1;
+            if (tile_row < 0) continue; // Above the board, skip
+            if (tile_row >= row_amount) continue; // Safety guard
+
+            board[tile_row][tile_col].color = player_color;
         }
     }
-    return false;
+
+    return true;
 }
 
-inline void Game::draw_rect(const SDL_FRect& rect, const Color& color) const
+inline void Game::draw_rect(const SDL_FRect& rect, const platform::player::color_t& color) const
 {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderFillRectF(renderer, &rect);
 }
 
 inline void Game::draw_player(const float& pos_x, const float& pos_y,
-                              const block_t& block_pattern, const color_t& player_color) const
+                              const platform::player::block_t& block_pattern,
+                              const platform::player::color_t& color) const
 {
-    for (int row = 0; row < PATTERN_ROW; ++row)
+    for (int row = 0; row < platform::player::PATTERN_ROW; ++row)
     {
-        for (int col = 0; col < PATTERN_COLUMN; ++col)
+        for (int col = 0; col < platform::player::PATTERN_COLUMN; ++col)
         {
             if (block_pattern.pattern[col][row] == '1')
             {
@@ -150,7 +189,7 @@ inline void Game::draw_player(const float& pos_x, const float& pos_y,
                     board_offset;
                 const float tile_y = pos_y + static_cast<float>(row) * block_size + static_cast<float>(row) *
                     board_offset;
-                draw_rect({tile_x, tile_y, block_size, block_size}, player_color);
+                draw_rect({tile_x, tile_y, block_size, block_size}, color);
             }
         }
     }

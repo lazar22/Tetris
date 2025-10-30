@@ -10,9 +10,29 @@
 } break;
 
 #include <string>
+#include <cstdint>
 
 namespace platform
 {
+    namespace player
+    {
+        constexpr uint8_t PATTERN_COLUMN{2};
+        constexpr uint8_t PATTERN_ROW{4};
+
+        typedef struct COLOR
+        {
+            unsigned r{};
+            unsigned g{};
+            unsigned b{};
+            unsigned a{255};
+        } color_t;
+
+        typedef struct BLOCK
+        {
+            char pattern[PATTERN_COLUMN][PATTERN_ROW];
+        } block_t;
+    }
+
     namespace window
     {
         const std::string title = "Tetris";
