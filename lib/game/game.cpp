@@ -46,12 +46,12 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
         current_player_speed = player_boost_speed;
     }
 
-    if (IS_PRESSED(platform::input::LEFT))
+    if (IS_PRESSED(platform::input::LEFT) && detect_horizontal_collision(-1))
     {
         player_position_x -= block_size + board_offset;
     }
 
-    if (IS_PRESSED(platform::input::RIGHT))
+    if (IS_PRESSED(platform::input::RIGHT) && detect_horizontal_collision(1))
     {
         player_position_x += block_size + board_offset;
     }
@@ -87,8 +87,11 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
     if (detect_collision())
     {
         SDL_Log("Collision");
+        check_row();
+
         player_pattern = block::get_random_block();
         player_color = block::get_random_color();
+
         player_position_y = board_offset;
     }
 
@@ -139,7 +142,6 @@ inline bool Game::detect_collision()
             if (is_filled(board[next_row][tile_col].color))
             {
                 will_collide = true;
-                // keep collided_with_floor = false
                 break;
             }
         }
@@ -152,8 +154,6 @@ inline bool Game::detect_collision()
         return false;
     }
 
-    // Determine the placement base row. If we collided with the bottom edge,
-    // move the piece one row up so its lowest tiles stay within the board.
     const int placement_base_row = base_row + (collided_with_floor ? -1 : 0);
 
     for (int r = 0; r < platform::player::PATTERN_ROW; ++r)
@@ -180,6 +180,51 @@ inline bool Game::detect_collision()
     return true;
 }
 
+inline bool Game::detect_horizontal_collision(int dx)
+{
+    constexpr float cell = block_size + board_offset;
+
+    const int base_col = static_cast<int>(std::round((player_position_x - board_offset) / cell));
+    const int base_row = static_cast<int>(std::floor((player_position_y - board_offset) / cell));
+
+    auto is_filled = [](const platform::player::color_t& c) -> bool
+    {
+        return !(c.r == empty_color.r && c.g == empty_color.g && c.b == empty_color.b);
+    };
+
+    for (int r = 0; r < platform::player::PATTERN_ROW; ++r)
+    {
+        for (int c = 0; c < platform::player::PATTERN_COLUMN; ++c)
+        {
+            if (player_pattern.pattern[c][r] != '1')
+            {
+                continue;
+            }
+
+            const int tile_row = base_row + r;
+            const int target_col = base_col + c + dx;
+
+            if (tile_row < 0 || tile_row >= row_amount)
+            {
+                continue;
+            }
+
+            if (target_col < 0 || target_col >= column_amount)
+            {
+                return false;
+            }
+
+            if (is_filled(board[tile_row][target_col].color))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
 inline void Game::draw_rect(const SDL_FRect& rect, const platform::player::color_t& color) const
 {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -201,6 +246,35 @@ inline void Game::draw_player(const float& pos_x, const float& pos_y,
                 const float tile_y = pos_y + static_cast<float>(row) * block_size + static_cast<float>(row) *
                     board_offset;
                 draw_rect({tile_x, tile_y, block_size, block_size}, color);
+            }
+        }
+    }
+}
+
+void Game::check_row(void)
+{
+    auto is_filled = [](const platform::player::color_t& c) -> bool
+    {
+        return !(c.r == empty_color.r && c.g == empty_color.g && c.b == empty_color.b);
+    };
+
+    for (int row = 0; row < row_amount; ++row)
+    {
+        bool full = true;
+        for (int col = 0; col < column_amount; ++col)
+        {
+            if (!is_filled(board[row][col].color))
+            {
+                full = false;
+                break;
+            }
+        }
+
+        if (full)
+        {
+            for (int col = 0; col < column_amount; ++col)
+            {
+                board[row][col].color = empty_color;
             }
         }
     }

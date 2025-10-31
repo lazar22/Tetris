@@ -41,9 +41,13 @@ private:
 
     inline static bool detect_collision(void);
 
+    static inline bool detect_horizontal_collision(int dx);
+
     inline void draw_player(const float& pos_x, const float& pos_y,
                             const platform::player::block_t& block_pattern,
                             const platform::player::color_t& color) const;
+
+    static void check_row(void);
 };
 
 #endif //GAME_H
