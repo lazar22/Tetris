@@ -14,6 +14,9 @@ static float delta_time = 0.f;
 
 static bool is_paused{true};
 
+static int mouse_x{0};
+static int mouse_y{0};
+
 #if WIN32
 int SDL_main(int argc, char** argv)
 #else
@@ -80,6 +83,26 @@ int main()
                     }
                 }
                 break;
+            case SDL_MOUSEMOTION:
+                {
+                    if (is_paused)
+                    {
+                        mouse_x = event.motion.x;
+                        mouse_y = event.motion.y;
+                    }
+                }
+
+            case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEBUTTONUP:
+                {
+                    const bool is_down = (event.type == SDL_MOUSEBUTTONDOWN);
+
+                    switch (event.button.button)
+                    {
+                    READ_KEY(platform::input::MOUSE_BTN_LEFT, SDL_BUTTON_LEFT);
+                    default: break;
+                    }
+                }
 
             default:
                 break;
@@ -98,7 +121,7 @@ int main()
 
         if (is_paused)
         {
-            game.menu(input, window_rect);
+            game.menu(input, {mouse_x, mouse_y});
         }
         else
         {

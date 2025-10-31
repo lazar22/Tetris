@@ -56,6 +56,9 @@ namespace platform
             LEFT,
             RIGHT,
 
+            MOUSE_BTN_LEFT,
+            MOUSE_BTN_RIGHT,
+
             QUIT,
 
             BTN_COUNT,
@@ -65,6 +68,12 @@ namespace platform
         {
             BUTTON_STATE buttons[BTN_COUNT];
         } input_t;
+
+        typedef struct MOUSE_POSITION
+        {
+            int x{};
+            int y{};
+        } mouse_pos_t;
     }
 }
 

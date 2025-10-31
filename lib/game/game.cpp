@@ -102,9 +102,17 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
     draw_player(player_position_x, player_position_y, player_pattern, player_color);
 }
 
-void Game::menu(platform::input::input_t& input, const SDL_Rect window) const
+void Game::menu(platform::input::input_t& input, const platform::input::mouse_pos_t mouse_pos) const
 {
     color_bg(platform::player::color_t{181, 175, 174});
+
+    constexpr SDL_Color def_txt_color{255, 255, 255};
+    constexpr SDL_Color sel_txt_color{128, 224, 157};
+
+    SDL_Color cur_start_color;
+    SDL_Color cur_quit_color;
+
+    constexpr int def_txt_size = 30;
 
     constexpr int txt_w = 200;
     constexpr int txt_h = 50;
@@ -117,14 +125,69 @@ void Game::menu(platform::input::input_t& input, const SDL_Rect window) const
     constexpr SDL_Rect start_rect{center_x, center_y, txt_w, txt_h};
     constexpr SDL_Rect quit_rect{center_x, center_y + txt_h + offset, txt_w, txt_h};
 
-    draw_text(30,
+    bool is_mouse_over_start = false;
+    bool over_quit = false;
+    bool over_start = false;
+
+    if (mouse_pos.x >= start_rect.x &&
+        mouse_pos.x <= start_rect.x + start_rect.w &&
+        mouse_pos.y >= start_rect.y &&
+        mouse_pos.y <= start_rect.y + start_rect.h)
+    {
+        cur_start_color = sel_txt_color;
+        over_start = true;
+
+        if (IS_PRESSED(platform::input::MOUSE_BTN_LEFT))
+        {
+            // Start Game
+            // is_game_paused = false;
+        }
+    }
+    else
+    {
+        cur_start_color = def_txt_color;
+        over_start = false;
+    }
+
+    if (mouse_pos.x >= quit_rect.x &&
+        mouse_pos.x <= quit_rect.x + quit_rect.w &&
+        mouse_pos.y >= quit_rect.y &&
+        mouse_pos.y <= quit_rect.y + quit_rect.h)
+    {
+        cur_quit_color = sel_txt_color;
+        over_quit = true;
+
+        if (IS_PRESSED(platform::input::MOUSE_BTN_LEFT))
+        {
+            // Quit Game
+        }
+    }
+    else
+    {
+        cur_quit_color = def_txt_color;
+        over_quit = false;
+    }
+
+    is_mouse_over_start = over_start || over_quit;
+
+    SDL_SetCursor(is_mouse_over_start
+                      ? SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)
+                      : SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
+
+    draw_text(def_txt_size,
               start_rect,
-              {255, 255, 255},
+              cur_start_color,
               "Start");
-    draw_text(30,
+
+    draw_text(def_txt_size,
               quit_rect,
-              {255, 255, 255},
+              cur_quit_color,
               "Quit");
+}
+
+bool Game::get_game_paused(void) const
+{
+    return is_game_paused;
 }
 
 inline bool Game::detect_collision()
@@ -318,3 +381,9 @@ void Game::check_row(void)
         }
     }
 }
+
+void Game::change_game_state()
+{
+    is_game_paused = !is_game_paused;
+}
+

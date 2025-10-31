@@ -23,6 +23,7 @@ typedef struct BOARD_RECTF
 class Game
 {
     SDL_Renderer* renderer{nullptr};
+    bool is_game_paused{true};
 
 public:
     explicit Game(SDL_Renderer* _renderer) : renderer{_renderer}
@@ -34,9 +35,11 @@ public:
 public:
     void simulate(const platform::input::input_t& input, const float& delta_time) const;
 
-    void menu(platform::input::input_t& input, SDL_Rect window) const;
+    void menu(platform::input::input_t& input, platform::input::mouse_pos_t mouse_pos) const;
 
     void color_bg(const platform::player::color_t& color) const;
+
+    [[nodiscard]] bool get_game_paused(void) const;
 
 private:
     inline void draw_rect(const SDL_FRect& rect, const platform::player::color_t& color) const;
@@ -53,6 +56,8 @@ private:
                           const char* txt) const;
 
     static void check_row(void);
+
+    inline void change_game_state(void);
 };
 
 #endif //GAME_H
