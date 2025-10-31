@@ -34,6 +34,8 @@ public:
 public:
     void simulate(const platform::input::input_t& input, const float& delta_time) const;
 
+    void menu(platform::input::input_t& input, SDL_Rect window) const;
+
     void color_bg(const platform::player::color_t& color) const;
 
 private:
@@ -46,6 +48,9 @@ private:
     inline void draw_player(const float& pos_x, const float& pos_y,
                             const platform::player::block_t& block_pattern,
                             const platform::player::color_t& color) const;
+
+    inline void draw_text(const uint8_t font_size, const SDL_Rect rect, const SDL_Color txt_color,
+                          const char* txt) const;
 
     static void check_row(void);
 };

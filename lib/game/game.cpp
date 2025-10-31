@@ -4,6 +4,8 @@
 
 #include "game.h"
 
+#include <SDL2/SDL_ttf.h>
+#include <filesystem>
 #include <cmath>
 
 static constexpr float player_vertical_speed{50.f};
@@ -14,6 +16,8 @@ static constexpr int row_amount{20};
 static constexpr int column_amount{14};
 
 static constexpr float board_offset{10.0f};
+
+static auto font_path = "assets/fonts/Debrosee_ALPnL.ttf";
 
 // Color used to represent an empty board cell
 static constexpr platform::player::color_t empty_color{191, 232, 88};
@@ -96,8 +100,31 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
     }
 
     draw_player(player_position_x, player_position_y, player_pattern, player_color);
+}
 
-    SDL_RenderPresent(renderer);
+void Game::menu(platform::input::input_t& input, const SDL_Rect window) const
+{
+    color_bg(platform::player::color_t{181, 175, 174});
+
+    constexpr int txt_w = 200;
+    constexpr int txt_h = 50;
+
+    constexpr int offset = 20;
+
+    constexpr int center_x = (platform::window::width - txt_w) / 2;
+    constexpr int center_y = (platform::window::height) / 2 - txt_h * 2;
+
+    constexpr SDL_Rect start_rect{center_x, center_y, txt_w, txt_h};
+    constexpr SDL_Rect quit_rect{center_x, center_y + txt_h + offset, txt_w, txt_h};
+
+    draw_text(30,
+              start_rect,
+              {255, 255, 255},
+              "Start");
+    draw_text(30,
+              quit_rect,
+              {255, 255, 255},
+              "Quit");
 }
 
 inline bool Game::detect_collision()
@@ -249,6 +276,18 @@ inline void Game::draw_player(const float& pos_x, const float& pos_y,
             }
         }
     }
+}
+
+inline void Game::draw_text(const uint8_t font_size, const SDL_Rect rect, const SDL_Color txt_color,
+                            const char* txt) const
+{
+    TTF_Font* font = TTF_OpenFont(font_path, font_size);
+    SDL_Surface* surface_msg = TTF_RenderText_Solid(font, txt, txt_color);
+
+    SDL_Texture* texture_msg = SDL_CreateTextureFromSurface(renderer, surface_msg);
+    SDL_RenderCopy(renderer, texture_msg, nullptr, &rect);
+
+    TTF_CloseFont(font);
 }
 
 void Game::check_row(void)
