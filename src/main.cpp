@@ -13,6 +13,7 @@ static platform::input::input_t input;
 static float delta_time = 0.f;
 
 static bool is_paused{true};
+static bool is_game_over{false};
 
 static int mouse_x{0};
 static int mouse_y{0};
@@ -121,10 +122,11 @@ int main()
 
         if (is_paused)
         {
-            switch (game.menu(input, {mouse_x, mouse_y}))
+            switch (game.menu(input, {mouse_x, mouse_y}, is_game_over))
             {
             case Game::MenuAction::Start:
                 is_paused = false;
+                is_game_over = false;
                 SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
                 break;
             case Game::MenuAction::Quit:
@@ -137,7 +139,19 @@ int main()
         }
         else
         {
-            game.simulate(input, delta_time);
+            switch (game.simulate(input, delta_time))
+            {
+            case Game::MenuAction::Quit:
+                is_paused = true;
+                is_game_over = true;
+                SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
+                break;
+            case Game::MenuAction::Start:
+            case Game::MenuAction::None:
+            default:
+                // Keep playing
+                break;
+            }
         }
 
         SDL_RenderPresent(renderer);

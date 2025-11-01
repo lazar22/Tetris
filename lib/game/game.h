@@ -35,13 +35,12 @@ public:
 public:
     enum class MenuAction { None, Start, Quit };
 
-    void simulate(const platform::input::input_t& input, const float& delta_time) const;
+    Game::MenuAction simulate(const platform::input::input_t& input, const float& delta_time) const;
 
-    [[nodiscard]] MenuAction menu(platform::input::input_t& input, platform::input::mouse_pos_t mouse_pos) const;
+    [[nodiscard]] MenuAction menu(platform::input::input_t& input, platform::input::mouse_pos_t mouse_pos,
+                                  const bool is_lost) const;
 
     void color_bg(const platform::player::color_t& color) const;
-
-    [[nodiscard]] bool get_game_paused(void) const;
 
 private:
     inline void draw_rect(const SDL_FRect& rect, const platform::player::color_t& color) const;
@@ -58,6 +57,8 @@ private:
                           const char* txt) const;
 
     static void check_row(void);
+
+    static bool check_last_row(void);
 
     inline void change_game_state(void);
 };

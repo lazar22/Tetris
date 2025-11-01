@@ -40,7 +40,7 @@ void Game::color_bg(const platform::player::color_t& color) const
     SDL_RenderClear(renderer);
 }
 
-void Game::simulate(const platform::input::input_t& input, const float& delta_time) const
+Game::MenuAction Game::simulate(const platform::input::input_t& input, const float& delta_time) const
 {
     color_bg(platform::player::color_t{181, 175, 174});
     current_player_speed = player_vertical_speed;
@@ -88,6 +88,11 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
         }
     }
 
+    if (check_last_row())
+    {
+        return Game::MenuAction::Quit;
+    }
+
     if (detect_collision())
     {
         SDL_Log("Collision");
@@ -100,9 +105,12 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
     }
 
     draw_player(player_position_x, player_position_y, player_pattern, player_color);
+
+    return Game::MenuAction::None;
 }
 
-Game::MenuAction Game::menu(platform::input::input_t& input, const platform::input::mouse_pos_t mouse_pos) const
+Game::MenuAction Game::menu(platform::input::input_t& input, const platform::input::mouse_pos_t mouse_pos,
+                            const bool is_lost) const
 {
     color_bg(platform::player::color_t{181, 175, 174});
 
@@ -128,6 +136,18 @@ Game::MenuAction Game::menu(platform::input::input_t& input, const platform::inp
     bool is_mouse_over_any = false;
     bool over_quit = false;
     bool over_start = false;
+
+    if (is_lost)
+    {
+        constexpr int game_over_offset = 100;
+        constexpr SDL_Rect game_over_rect{center_x, center_y - game_over_offset, txt_w, txt_h};
+        constexpr SDL_Color game_over_txt_color{227, 81, 52};
+
+        draw_text(def_txt_size,
+                  game_over_rect,
+                  game_over_txt_color,
+                  "Game Over");
+    }
 
     if (mouse_pos.x >= start_rect.x &&
         mouse_pos.x <= start_rect.x + start_rect.w &&
@@ -184,11 +204,6 @@ Game::MenuAction Game::menu(platform::input::input_t& input, const platform::inp
               "Quit");
 
     return MenuAction::None;
-}
-
-bool Game::get_game_paused(void) const
-{
-    return is_game_paused;
 }
 
 inline bool Game::detect_collision()
@@ -382,6 +397,26 @@ void Game::check_row(void)
         }
     }
 }
+
+bool Game::check_last_row()
+{
+    auto is_filled = [](const platform::player::color_t& c) -> bool
+    {
+        return !(c.r == empty_color.r && c.g == empty_color.g && c.b == empty_color.b);
+    };
+
+    // Game over condition: if any cell in the first (top) row is filled
+    for (int col = 0; col < column_amount; ++col)
+    {
+        if (is_filled(board[0][col].color))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 
 void Game::change_game_state()
 {
