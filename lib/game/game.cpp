@@ -102,7 +102,7 @@ void Game::simulate(const platform::input::input_t& input, const float& delta_ti
     draw_player(player_position_x, player_position_y, player_pattern, player_color);
 }
 
-void Game::menu(platform::input::input_t& input, const platform::input::mouse_pos_t mouse_pos) const
+Game::MenuAction Game::menu(platform::input::input_t& input, const platform::input::mouse_pos_t mouse_pos) const
 {
     color_bg(platform::player::color_t{181, 175, 174});
 
@@ -125,7 +125,7 @@ void Game::menu(platform::input::input_t& input, const platform::input::mouse_po
     constexpr SDL_Rect start_rect{center_x, center_y, txt_w, txt_h};
     constexpr SDL_Rect quit_rect{center_x, center_y + txt_h + offset, txt_w, txt_h};
 
-    bool is_mouse_over_start = false;
+    bool is_mouse_over_any = false;
     bool over_quit = false;
     bool over_start = false;
 
@@ -139,8 +139,7 @@ void Game::menu(platform::input::input_t& input, const platform::input::mouse_po
 
         if (IS_PRESSED(platform::input::MOUSE_BTN_LEFT))
         {
-            // Start Game
-            // is_game_paused = false;
+            return MenuAction::Start;
         }
     }
     else
@@ -159,7 +158,7 @@ void Game::menu(platform::input::input_t& input, const platform::input::mouse_po
 
         if (IS_PRESSED(platform::input::MOUSE_BTN_LEFT))
         {
-            // Quit Game
+            return MenuAction::Quit;
         }
     }
     else
@@ -168,9 +167,9 @@ void Game::menu(platform::input::input_t& input, const platform::input::mouse_po
         over_quit = false;
     }
 
-    is_mouse_over_start = over_start || over_quit;
+    is_mouse_over_any = over_start || over_quit;
 
-    SDL_SetCursor(is_mouse_over_start
+    SDL_SetCursor(is_mouse_over_any
                       ? SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)
                       : SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
 
@@ -183,6 +182,8 @@ void Game::menu(platform::input::input_t& input, const platform::input::mouse_po
               quit_rect,
               cur_quit_color,
               "Quit");
+
+    return MenuAction::None;
 }
 
 bool Game::get_game_paused(void) const

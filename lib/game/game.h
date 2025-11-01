@@ -33,9 +33,11 @@ public:
     ~Game() = default;
 
 public:
+    enum class MenuAction { None, Start, Quit };
+
     void simulate(const platform::input::input_t& input, const float& delta_time) const;
 
-    void menu(platform::input::input_t& input, platform::input::mouse_pos_t mouse_pos) const;
+    [[nodiscard]] MenuAction menu(platform::input::input_t& input, platform::input::mouse_pos_t mouse_pos) const;
 
     void color_bg(const platform::player::color_t& color) const;
 

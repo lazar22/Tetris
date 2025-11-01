@@ -121,7 +121,19 @@ int main()
 
         if (is_paused)
         {
-            game.menu(input, {mouse_x, mouse_y});
+            switch (game.menu(input, {mouse_x, mouse_y}))
+            {
+            case Game::MenuAction::Start:
+                is_paused = false;
+                SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
+                break;
+            case Game::MenuAction::Quit:
+                is_running = false;
+                break;
+            case Game::MenuAction::None:
+            default:
+                break;
+            }
         }
         else
         {
